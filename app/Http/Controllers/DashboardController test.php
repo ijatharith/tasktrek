@@ -12,15 +12,9 @@ class DashboardController extends BaseController
     public function index()
     {
         $data = [
-            'pending_count' => Task::where('status', 'Pending')->count(),
-            
-            // FIX: Only count High Priority tasks that are still Pending
-            'priority_count' => Task::where('priority', 'High')
-                                    ->where('status', 'Pending')
-                                    ->count(),
-                                    
+            'priority_count' => Task::where('priority', 'High')->count(),
             'completed_count' => Task::where('status', 'Completed')->count(),
-            'tasks' => Task::latest()->take(5)->get()
+            'tasks' => Task::latest()->take(5)->get() // Only show recent tasks on dashboard
         ];
         return view('dashboard', $data);
     }
@@ -60,11 +54,10 @@ class DashboardController extends BaseController
     }
     
     public function update(Request $request, $id)
+    // Update the Task
     {
-        // 1. Find the task once
         $task = Task::findOrFail($id);
         
-        // 2. Validate the incoming data
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'course' => 'nullable|string|max:255',
@@ -74,10 +67,11 @@ class DashboardController extends BaseController
             'status' => 'required|string'
         ]);
     
-        // 3. Update using the validated data
-        $task->update($validated);
-    
-        // 4. Redirect - the index() method will now run and recalculate the counts
+        // 1. Find and update the task
+        $task = Task::findOrFail($id);
+        $task->update($request->all());
+
+        // 2. Redirect back to dashboard with the 'updated' success message
         return redirect()->route('dashboard')->with('updated', true);
     }
     // Show the Delete Confirmation Form (Image 6)
@@ -101,10 +95,5 @@ class DashboardController extends BaseController
     {
         $tasks = Task::orderBy('deadline', 'asc')->get();
         return view('tasks.index', compact('tasks'));
-    }
-
-    public function profile()
-    {
-        return view('profile');
     }
 }

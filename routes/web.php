@@ -23,6 +23,8 @@ Route::delete('/tasks/{id}', [DashboardController::class, 'destroy'])->name('tas
 
 // If your logic is in DashboardController
 Route::get('/assignments', [DashboardController::class, 'assignments'])->name('tasks.index');
+Route::get('/profile', [DashboardController::class, 'profile'])->name('profile');
 
 // OR if your logic is in TaskController
-Route::get('/assignments', [DashboardController::class, 'index'])->name('tasks.index');
+// 27: Duplicate removed
+// Route::get('/assignments', [DashboardController::class, 'index'])->name('tasks.index');

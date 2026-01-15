@@ -41,6 +41,16 @@
                         @csrf
                         @method('PUT')
 
+                        @if ($errors->any())
+                            <div class="mb-4 bg-red-50 text-red-600 p-4 rounded-lg">
+                                <ul>
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
                         <div class="mb-6">
                             <label class="block text-sm font-bold text-black mb-2">Task Title <span class="text-red-500">*</span></label>
                             <input type="text" name="title" value="{{ $task->title }}" class="w-full bg-[#E8EEF5] rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none">
@@ -84,17 +94,20 @@
                             <div>
                                 <label class="block text-sm font-bold text-black mb-2">Current Status</label>
                                 <div class="space-y-2">
-                                    <label class="flex items-center p-2 {{ $task->status == 'Pending' ? 'bg-yellow-100 border-yellow-200' : 'bg-[#E8EEF5]' }} rounded-lg cursor-pointer">
-                                        <input type="radio" name="status" value="Pending" {{ $task->status == 'Pending' ? 'checked' : '' }} class="mr-2">
-                                        <span class="mr-2">🕒</span> Pending
-                                    </label>
-                                    <label class="flex items-center p-2 {{ $task->status == 'Completed' ? 'bg-green-100 border-green-200' : 'bg-[#E8EEF5]' }} rounded-lg cursor-pointer">
-                                        <input type="radio" name="status" value="Completed" {{ $task->status == 'Completed' ? 'checked' : '' }} class="mr-2">
-                                        <span class="mr-2">✅</span> Completed
-                                    </label>
-                                </div>
+                                    <label class="flex items-center p-2 rounded-lg cursor-pointer mb-2" 
+                                   style="background-color: {{ $task->status == 'Pending' ? '#FEF3C7' : '#E8EEF5' }}; border: 1px solid {{ $task->status == 'Pending' ? '#FDE68A' : 'transparent' }};">
+                                <input type="radio" name="status" value="Pending" {{ $task->status == 'Pending' ? 'checked' : '' }} class="mr-2">
+                                <span class="mr-2">🕒</span> <span style="color: #92400E; font-weight: bold;">Pending</span>
+                            </label>
+                            
+                            <label class="flex items-center p-2 rounded-lg cursor-pointer" 
+                                   style="background-color: {{ $task->status == 'Completed' ? '#DCFCE7' : '#E8EEF5' }}; border: 1px solid {{ $task->status == 'Completed' ? '#BBF7D0' : 'transparent' }};">
+                                <input type="radio" name="status" value="Completed" {{ $task->status == 'Completed' ? 'checked' : '' }} class="mr-2">
+                                <span class="mr-2">✅</span> <span style="color: #166534; font-weight: bold;">Completed</span>
+                            </label>
                             </div>
                         </div>
+                    </div>
 
                         <div class="flex justify-between items-center mt-8 pt-4 border-t">
                             <span class="text-xs text-gray-400 italic">Last Update {{ $task->updated_at->diffForHumans() }}</span>

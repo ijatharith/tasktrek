@@ -66,7 +66,7 @@
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
                         My Assignments
                     </a>
-                    <a href="#" class="flex items-center px-4 py-2 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors">
+                    <a href="{{ route('tasks.index', ['view' => 'calendar']) }}" class="flex items-center px-4 py-2 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                         Calendar
                     </a>
@@ -74,7 +74,7 @@
 
                 <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-8 mb-4">Settings</p>
                 <nav class="space-y-2">
-                    <a href="#" class="flex items-center px-4 py-2 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors">
+                    <a href="{{ route('profile') }}" class="flex items-center px-4 py-2 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                         Profile
                     </a>
@@ -122,7 +122,9 @@
                 <div class="bg-white rounded-xl p-6 shadow-sm flex items-start justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-500">High Priority</p>
-                        <h2 class="text-4xl font-bold text-gray-800 mt-4">{{ $priority_count ?? 0 }}</h2>
+                        <h2 class="text-4xl font-bold mt-4 {{ $priority_count > 0 ? 'text-gray-800' : 'text-gray-800' }}">
+                            {{ $priority_count ?? 0 }}
+                        </h2>
                     </div>
                     <div class="p-2 rounded-full border-2 border-red-500 text-red-500">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd"></path></svg>
@@ -160,7 +162,7 @@
                     <div class="flex-1 overflow-y-auto">
                         @foreach($tasks as $task)
                             <div class="grid grid-cols-5 border-b border-gray-100 py-4 px-6 items-center hover:bg-gray-50 transition">
-                                <div class="text-sm font-semibold text-gray-800">
+                                <div class="text-sm font-semibold text-gray-800 break-words min-w-0 pr-4">
                                     {{ $task->title }}
                                     <p class="text-xs text-gray-400 font-normal mt-1">{{ $task->description }}</p>
                                 </div>
@@ -177,7 +179,8 @@
                                     </span>
                                 </div>
                                 <div>
-                                    <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-yellow-100 text-yellow-600">
+                                    <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase 
+                                        {{ $task->status == 'Completed' ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600' }}">
                                         {{ $task->status }}
                                     </span>
                                 </div>
