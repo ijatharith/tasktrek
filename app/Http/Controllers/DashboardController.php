@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Routing\Controller as BaseController;
 
 class DashboardController extends BaseController
@@ -11,16 +12,18 @@ class DashboardController extends BaseController
     // 1. Shows the Dashboard (Image 1 & 3)
     public function index()
     {
+        $userId = Auth::id();
         $data = [
-            'pending_count' => Task::where('status', 'Pending')->count(),
+            'pending_count' => Task::where('user_id', $userId)->where('status', 'Pending')->count(),
             
             // FIX: Only count High Priority tasks that are still Pending
-            'priority_count' => Task::where('priority', 'High')
+            'priority_count' => Task::where('user_id', $userId)
+                                    ->where('priority', 'High')
                                     ->where('status', 'Pending')
                                     ->count(),
                                     
-            'completed_count' => Task::where('status', 'Completed')->count(),
-            'tasks' => Task::latest()->take(5)->get()
+            'completed_count' => Task::where('user_id', $userId)->where('status', 'Completed')->count(),
+            'tasks' => Task::where('user_id', $userId)->latest()->take(5)->get()
         ];
         return view('dashboard', $data);
     }
@@ -47,6 +50,7 @@ class DashboardController extends BaseController
         ]);
 
         // If validation passes, create the task
+        $validated['user_id'] = Auth::id();
         Task::create($validated);
 
         return redirect()->route('dashboard')->with('created', true);
@@ -55,14 +59,14 @@ class DashboardController extends BaseController
     // Show the Edit Form
     public function edit($id)
     {
-        $task = Task::findOrFail($id);
+        $task = Task::where('user_id', Auth::id())->findOrFail($id);
         return view('tasks.edit', compact('task'));
     }
     
     public function update(Request $request, $id)
     {
         // 1. Find the task once
-        $task = Task::findOrFail($id);
+        $task = Task::where('user_id', Auth::id())->findOrFail($id);
         
         // 2. Validate the incoming data
         $validated = $request->validate([
@@ -83,7 +87,7 @@ class DashboardController extends BaseController
     // Show the Delete Confirmation Form (Image 6)
     public function deleteConfirm($id)
     {
-        $task = Task::findOrFail($id);
+        $task = Task::where('user_id', Auth::id())->findOrFail($id);
         return view('tasks.delete', compact('task'));
     }
     
@@ -91,7 +95,7 @@ class DashboardController extends BaseController
     public function destroy($id)
     {
         // 1. Find and delete the task
-        $task = Task::findOrFail($id);
+        $task = Task::where('user_id', Auth::id())->findOrFail($id);
         $task->delete();
 
         // 2. Redirect back to dashboard with the 'deleted' success message
@@ -99,12 +103,31 @@ class DashboardController extends BaseController
     }
     public function assignments()
     {
-        $tasks = Task::orderBy('deadline', 'asc')->get();
+        $tasks = Task::where('user_id', Auth::id())->orderBy('deadline', 'asc')->get();
         return view('tasks.index', compact('tasks'));
     }
 
     public function profile()
     {
-        return view('profile');
+        $user = Auth::user();
+        return view('profile', compact('user'));
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'semester' => 'required',
+            'level' => 'required',
+            'course' => 'required|string',
+            'faculty' => 'required|string',
+        ]);
+
+        $user->update($validated);
+
+        return redirect()->route('profile')->with('status', 'profile-updated');
     }
 }

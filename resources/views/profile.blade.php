@@ -48,6 +48,13 @@
                             <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                             Profile
                         </a>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="flex items-center px-4 py-2 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors w-full text-left">
+                                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                                Log Out
+                            </button>
+                        </form>
                     </nav>
                 </div> <!-- Close px-4 py-6 -->
             </div> <!-- Close top wrapper -->
@@ -57,8 +64,8 @@
                         <svg class="h-12 w-12 text-gray-300 relative top-1" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                     </div>
                     <div class="ml-3">
-                        <p class="text-sm font-medium text-white">AHMAD ABU</p>
-                        <p class="text-xs text-gray-500">Students &bull; Sem 1</p>
+                        <p class="text-sm font-medium text-white">{{ Auth::user()->name }}</p>
+                        <p class="text-xs text-gray-500">Student &bull; Sem {{ Auth::user()->semester }}</p>
                     </div>
                 </div>
             </aside>
@@ -78,61 +85,96 @@
                         
                         <!-- Profile Card -->
                         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                            <div class="px-8 py-8 relative">
-                                <div class="flex flex-col md:flex-row items-center md:items-end mb-6">
-                                    <div class="h-24 w-24 rounded-full bg-white p-1 shadow-md">
-                                        <div class="h-full w-full rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                                            <svg class="h-20 w-20 text-gray-400 relative top-2" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                            <form action="{{ route('profile.update') }}" method="POST" id="profile-form">
+                                @csrf
+                                @method('PUT')
+                                
+                                <div class="px-8 py-8 relative">
+                                    <div class="flex flex-col md:flex-row items-center md:items-end mb-6">
+                                        <div class="h-24 w-24 rounded-full bg-white p-1 shadow-md">
+                                            <div class="h-full w-full rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                                                <svg class="h-20 w-20 text-gray-400 relative top-2" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                            </div>
+                                        </div>
+                                        <div class="mt-4 md:mt-0 md:ml-10 text-center md:text-left">
+                                            <h2 class="text-2xl font-bold text-gray-800">{{ $user->name }}</h2>
+                                            <p class="text-gray-500 font-medium">Student</p>
+                                        </div>
+                                        <div class="ml-auto mt-4 md:mt-0 flex space-x-3">
+                                            <button type="button" id="edit-btn" onclick="enableEditing()" class="bg-blue-600 hover:bg-blue-700 text-white border border-transparent px-6 py-2 rounded-lg text-sm font-semibold transition shadow-sm">
+                                                Edit Profile
+                                            </button>
+                                            <button type="button" id="cancel-btn" onclick="cancelEditing()" class="hidden bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-6 py-2 rounded-lg text-sm font-semibold transition shadow-sm">
+                                                Cancel
+                                            </button>
+                                            <button type="submit" id="save-btn" class="hidden bg-blue-600 hover:bg-blue-700 text-white border border-transparent px-6 py-2 rounded-lg text-sm font-semibold transition shadow-sm">
+                                                Save Changes
+                                            </button>
                                         </div>
                                     </div>
-                                    <div class="mt-4 md:mt-0 md:ml-10 text-center md:text-left">
-                                        <h2 class="text-2xl font-bold text-gray-800">Ahmad Abu</h2>
-                                        <p class="text-gray-500 font-medium">Student</p>
-                                    </div>
-                                    <button class="ml-auto mt-4 md:mt-0 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg text-sm font-semibold transition shadow-sm">
-                                        Edit Profile
-                                    </button>
-                                </div>
 
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Student ID</p>
-                                        <p class="text-lg font-bold text-gray-800">2411234</p>
-                                    </div>
-                                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Semester</p>
-                                        <p class="text-lg font-bold text-gray-800">Semester 1</p>
-                                    </div>
-                                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Level</p>
-                                        <p class="text-lg font-bold text-black">2</p>
+                                    @if (session('status') === 'profile-updated')
+                                        <div class="bg-green-100 text-green-800 p-4 rounded-lg mb-6 text-center text-sm font-semibold">
+                                            Profile updated successfully!
+                                        </div>
+                                    @endif
+
+                                    @if ($errors->any())
+                                        <div class="bg-red-50 text-red-600 p-4 rounded-lg mb-6">
+                                            <ul class="list-disc list-inside text-sm">
+                                                @foreach ($errors->all() as $error)
+                                                    <li>{{ $error }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    @endif
+
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Student ID</p>
+                                            <p class="text-lg font-bold text-gray-800">{{ $user->student_id }}</p>
+                                            <!-- Hidden ID input not needed for update, but kept for reference if needed logic relies on it (it doesn't here) -->
+                                        </div>
+                                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 relative group">
+                                            <label for="semester" class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1 block">Semester</label>
+                                            <input type="number" name="semester" id="semester" value="{{ old('semester', $user->semester) }}" class="text-lg font-bold text-gray-800 bg-transparent border-b border-transparent focus:border-blue-500 focus:outline-none w-full pb-0.5 transition-colors" readonly>
+                                            <p class="text-[10px] text-blue-500 absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">Edit</p>
+                                        </div>
+                                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 relative group">
+                                            <label for="level" class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1 block">Level</label>
+                                            <input type="number" name="level" id="level" value="{{ old('level', $user->level) }}" class="text-lg font-bold text-black bg-transparent border-b border-transparent focus:border-blue-500 focus:outline-none w-full pb-0.5 transition-colors" readonly>
+                                             <p class="text-[10px] text-blue-500 absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">Edit</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
                         </div>
 
-                        <!-- Academic Details Form (Read-only for demo) -->
+                        <!-- Academic Details Form -->
                         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                             <h3 class="text-lg font-bold text-gray-800 mb-6 border-b border-gray-100 pb-4">Academic Information</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                                    <input type="text" value="Ahmad Abu Bakar" disabled class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-gray-600">
+                                    <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                                    <input type="text" name="name" id="name" value="{{ old('name', $user->name) }}" class="w-full bg-gray-50 border border-transparent rounded-lg px-4 py-2 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-shadow" readonly>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                                    <input type="email" value="ahmad.abu@gmail.com" disabled class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-gray-600">
+                                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                                    <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}" class="w-full bg-gray-50 border border-transparent rounded-lg px-4 py-2 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-shadow" readonly>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Program</label>
-                                    <input type="text" value="Bachelor of Computer Science (Hons)" disabled class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-gray-600">
+                                    <label for="course" class="block text-sm font-medium text-gray-700 mb-2">Program</label>
+                                    <select id="course" name="course" class="w-full bg-gray-50 border border-transparent rounded-lg px-4 py-2 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-shadow pointer-events-none" tabindex="-1">
+                                        <option value="Bachelor in Computer Science (with Hons.)" {{ old('course', $user->course) == 'Bachelor in Computer Science (with Hons.)' ? 'selected' : '' }}>Bachelor in Computer Science (with Hons.)</option>
+                                        <option value="Bachelor in Information Technology (with Hons.)" {{ old('course', $user->course) == 'Bachelor in Information Technology (with Hons.)' ? 'selected' : '' }}>Bachelor in Information Technology (with Hons.)</option>
+                                    </select>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Faculty</label>
-                                    <input type="text" value="Kulliyah of Computing and Information Technology" disabled class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-gray-600">
+                                    <label for="faculty" class="block text-sm font-medium text-gray-700 mb-2">Faculty</label>
+                                    <input type="text" name="faculty" id="faculty" value="{{ old('faculty', $user->faculty) }}" class="w-full bg-gray-50 border border-transparent rounded-lg px-4 py-2 text-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-shadow" readonly>
                                 </div>
                             </div>
                         </div>
+                        </form>
 
                         <!-- Preferences -->
                         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
@@ -167,4 +209,62 @@
     </div>
 
 </body>
+<script>
+    const initialValues = {
+        name: @json($user->name),
+        email: @json($user->email),
+        course: @json($user->course),
+        faculty: @json($user->faculty),
+        semester: @json($user->semester),
+        level: @json($user->level)
+    };
+
+    function enableEditing() {
+        document.getElementById('edit-btn').classList.add('hidden');
+        document.getElementById('save-btn').classList.remove('hidden');
+        document.getElementById('cancel-btn').classList.remove('hidden');
+
+        const inputs = ['name', 'email', 'faculty', 'semester', 'level'];
+        inputs.forEach(id => {
+            const el = document.getElementById(id);
+            el.readOnly = false;
+            el.classList.remove('bg-gray-50', 'border-transparent');
+            el.classList.add('bg-white', 'border-gray-200');
+            if(id === 'semester' || id === 'level') {
+                 el.classList.remove('border-transparent');
+                 el.classList.add('border-gray-300');
+            }
+        });
+
+        const courseSelect = document.getElementById('course');
+        courseSelect.classList.remove('bg-gray-50', 'border-transparent', 'pointer-events-none');
+        courseSelect.classList.add('bg-white', 'border-gray-200');
+        courseSelect.removeAttribute('tabindex');
+    }
+
+    function cancelEditing() {
+        document.getElementById('edit-btn').classList.remove('hidden');
+        document.getElementById('save-btn').classList.add('hidden');
+        document.getElementById('cancel-btn').classList.add('hidden');
+
+        const inputs = ['name', 'email', 'faculty', 'semester', 'level'];
+        inputs.forEach(id => {
+            const el = document.getElementById(id);
+            el.value = initialValues[id]; // Reset value
+            el.readOnly = true;
+            el.classList.add('bg-gray-50', 'border-transparent');
+            el.classList.remove('bg-white', 'border-gray-200');
+             if(id === 'semester' || id === 'level') {
+                 el.classList.add('border-transparent');
+                 el.classList.remove('border-gray-300');
+            }
+        });
+
+        const courseSelect = document.getElementById('course');
+        courseSelect.value = initialValues['course'];
+        courseSelect.classList.add('bg-gray-50', 'border-transparent', 'pointer-events-none');
+        courseSelect.classList.remove('bg-white', 'border-gray-200');
+        courseSelect.setAttribute('tabindex', '-1');
+    }
+</script>
 </html>
