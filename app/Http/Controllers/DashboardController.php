@@ -9,22 +9,35 @@ use Illuminate\Routing\Controller as BaseController;
 
 class DashboardController extends BaseController
 {
-    // 1. Shows the Dashboard (Image 1 & 3)
+    // Replace your existing index() method with this:
     public function index()
     {
         $userId = Auth::id();
+        
+        // Get upcoming tasks due within 7 days (not completed)
+        $upcomingTasks = Task::where('user_id', $userId)
+            ->where('status', '!=', 'Completed')
+            ->whereDate('deadline', '>=', today())
+            ->whereDate('deadline', '<=', today()->addDays(7))
+            ->orderBy('deadline', 'asc')
+            ->get();
+
         $data = [
             'pending_count' => Task::where('user_id', $userId)->where('status', 'Pending')->count(),
             
-            // FIX: Only count High Priority tasks that are still Pending
             'priority_count' => Task::where('user_id', $userId)
-                                    ->where('priority', 'High')
+                                    ->where('priority', 'high')
                                     ->where('status', 'Pending')
                                     ->count(),
                                     
             'completed_count' => Task::where('user_id', $userId)->where('status', 'Completed')->count(),
-            'tasks' => Task::where('user_id', $userId)->latest()->take(5)->get()
+            
+            'tasks' => Task::where('user_id', $userId)->latest()->take(5)->get(),
+            
+            // Add upcoming tasks to the data array
+            'upcomingTasks' => $upcomingTasks
         ];
+        
         return view('dashboard', $data);
     }
 
@@ -41,8 +54,8 @@ class DashboardController extends BaseController
             'title' => 'required|max:255',
             'course' => 'nullable',
             'deadline' => 'required|date',
-            'priority' => 'required',
-            'description' => 'nullable',
+            'priority' => 'required|in:low,medium,high',
+            'description' => 'nullable|string',
         ], [
 
             'title.required' => 'Title is required',
@@ -51,9 +64,10 @@ class DashboardController extends BaseController
 
         // If validation passes, create the task
         $validated['user_id'] = Auth::id();
+        
         Task::create($validated);
 
-        return redirect()->route('dashboard')->with('created', true);
+        return redirect()->route('tasks.index')->with('created', true);
     }
 
     // Show the Edit Form
@@ -73,16 +87,16 @@ class DashboardController extends BaseController
             'title' => 'required|string|max:255',
             'course' => 'nullable|string|max:255',
             'deadline' => 'required|date',
-            'priority' => 'required|string',
+            'priority' => 'required|in:low,medium,high',
+            'status'   => 'required|in:Pending,Completed',
             'description' => 'nullable|string',
-            'status' => 'required|string'
         ]);
     
         // 3. Update using the validated data
         $task->update($validated);
     
         // 4. Redirect - the index() method will now run and recalculate the counts
-        return redirect()->route('dashboard')->with('updated', true);
+        return redirect()->route('tasks.index')->with('updated', true);
     }
     // Show the Delete Confirmation Form (Image 6)
     public function deleteConfirm($id)
@@ -98,8 +112,8 @@ class DashboardController extends BaseController
         $task = Task::where('user_id', Auth::id())->findOrFail($id);
         $task->delete();
 
-        // 2. Redirect back to dashboard with the 'deleted' success message
-        return redirect()->route('dashboard')->with('deleted', true);
+        // 2. Redirect back to My Assignments with the 'deleted' success message
+        return redirect()->route('tasks.index')->with('deleted', true);
     }
     public function assignments()
     {

@@ -16,7 +16,7 @@
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 1px;
-            background-color: #E5E7EB; /* Gray-200 for borders */
+            background-color: #E5E7EB;
         }
         .calendar-cell {
             background-color: white;
@@ -25,8 +25,72 @@
         }
     </style>
 </head>
-<body class="bg-gray-100" x-data="{ view: new URLSearchParams(window.location.search).get('view') || 'list' }">
-
+<body class="bg-gray-100" x-data="{
+    view: new URLSearchParams(window.location.search).get('view') || 'list',
+    searchQuery: '',
+    filterCourse: '',
+    filterPriority: '',
+    filterStatus: '',
+    
+    get filteredTasks() {
+        let tasks = this.$refs.tasksTable?.querySelectorAll('tbody tr[data-task]') || [];
+        let filtered = Array.from(tasks).filter(row => {
+            const title = row.dataset.title.toLowerCase();
+            const course = row.dataset.course.toLowerCase();
+            const priority = row.dataset.priority.toLowerCase();
+            const status = row.dataset.status.toLowerCase();
+            
+            const matchesSearch = this.searchQuery === '' || title.includes(this.searchQuery.toLowerCase());
+            const matchesCourse = this.filterCourse === '' || course === this.filterCourse.toLowerCase();
+            const matchesPriority = this.filterPriority === '' || priority === this.filterPriority.toLowerCase();
+            const matchesStatus = this.filterStatus === '' || status === this.filterStatus.toLowerCase();
+            
+            return matchesSearch && matchesCourse && matchesPriority && matchesStatus;
+        });
+        
+        tasks.forEach(row => row.style.display = 'none');
+        filtered.forEach(row => row.style.display = '');
+        
+        const emptyRow = this.$refs.emptyRow;
+        if (emptyRow) {
+            emptyRow.style.display = filtered.length === 0 ? '' : 'none';
+        }
+        
+        return filtered;
+    },
+    
+    clearFilters() {
+        this.searchQuery = '';
+        this.filterCourse = '';
+        this.filterPriority = '';
+        this.filterStatus = '';
+    }
+}">
+    @if(session('deleted') || session('created') || session('updated'))
+    <div x-data="{ show: true }" 
+         x-show="show" 
+         x-init="setTimeout(() => show = false, 1500)" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 scale-90"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-300"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
+    
+        <div class="bg-[#4F75D1] text-white p-16 rounded-lg shadow-2xl text-center w-[450px]"
+             @click.away="show = false">
+            <h2 class="text-2xl font-bold mb-4 uppercase tracking-tight">
+                {{ session('deleted') ? 'Delete Task' : (session('created') ? 'Create Task' : 'Update Task') }}
+            </h2>
+        
+            <p class="text-3xl font-medium">
+                {{ session('deleted') ? 'Task has been deleted' : (session('created') ? 'Task has been created' : 'Task has been updated') }}
+            </p>
+        </div>
+    </div>
+    @endif
+    
     <div class="flex h-screen overflow-hidden">
         
         <!-- SIDEBAR (Consistent with Dashboard) -->
@@ -37,9 +101,6 @@
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                     </div>
                     <span class="text-xl font-bold tracking-wide">TaskTrek</span>
-                    <button class="ml-auto text-gray-400 hover:text-white">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                    </button>
                 </div>
 
                 <div class="px-4 py-6">
@@ -52,11 +113,6 @@
                         <a href="{{ route('tasks.index') }}" class="flex items-center px-4 py-2 bg-gray-800 text-white rounded-lg transition-colors">
                             <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
                             My Assignments
-                        </a>
-                        <!-- Calendar Link (Just points to this page for now, or could toggle view via param, but we use JS toggle) -->
-                        <a href="#" @click.prevent="view = 'calendar'" :class="view === 'calendar' ? 'text-white' : 'text-gray-400'" class="flex items-center px-4 py-2 hover:bg-gray-800 hover:text-white rounded-lg transition-colors">
-                            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            Calendar
                         </a>
                     </nav>
 
@@ -95,41 +151,131 @@
                     <h1 class="text-2xl font-semibold text-gray-800">My Assignments</h1>
                     <p class="text-sm text-gray-500 mt-1">Manage your academic workload and deadlines.</p>
                 </div>
-                <!-- View Toggler in Header -->
-                <div class="flex bg-gray-100 p-1 rounded-lg">
-                    <button @click="view = 'list'" :class="view === 'list' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'" class="px-4 py-2 rounded-md text-sm font-medium transition-all">List View</button>
-                    <button @click="view = 'calendar'" :class="view === 'calendar' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'" class="px-4 py-2 rounded-md text-sm font-medium transition-all">Calendar</button>
+                <div class="flex items-center gap-4">
+                    <!-- View Toggler in Header -->
+                    <div class="flex bg-gray-100 p-1 rounded-lg">
+                        <button @click="view = 'list'" :class="view === 'list' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'" class="px-4 py-2 rounded-md text-sm font-medium transition-all">List View</button>
+                        <button @click="view = 'calendar'" :class="view === 'calendar' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'" class="px-4 py-2 rounded-md text-sm font-medium transition-all">Calendar</button>
+                    </div>
+                    
+                    <a href="{{ route('tasks.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        New Assignment
+                    </a>
                 </div>
-                
-                <a href="{{ route('tasks.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center ml-4">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"></path></svg>
-                    New Assignment
-                </a>
             </header>
 
             <div class="flex-1 overflow-y-auto p-8">
                 
                 <!-- LIST VIEW -->
                 <div x-show="view === 'list'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100">
+                    
+                    <!-- Search and Filter Bar -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                            <!-- Search -->
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-2">Search</label>
+                                <div class="relative">
+                                    <input 
+                                        type="text" 
+                                        x-model="searchQuery"
+                                        @input="filteredTasks"
+                                        placeholder="Search by task title..."
+                                        class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    >
+                                    <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <!-- Course Filter -->
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-2">Course</label>
+                                <select 
+                                    x-model="filterCourse"
+                                    @change="filteredTasks"
+                                    class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                    <option value="">All Courses</option>
+                                    @foreach($tasks->pluck('course')->unique()->filter() as $course)
+                                        <option value="{{ $course }}">{{ $course }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <!-- Priority Filter -->
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-2">Priority</label>
+                                <select 
+                                    x-model="filterPriority"
+                                    @change="filteredTasks"
+                                    class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                    <option value="">All Priorities</option>
+                                    <option value="High">High</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Low">Low</option>
+                                </select>
+                            </div>
+
+                            <!-- Status Filter -->
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 uppercase mb-2">Status</label>
+                                <select 
+                                    x-model="filterStatus"
+                                    @change="filteredTasks"
+                                    class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                    <option value="">All Statuses</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Completed">Completed</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Clear Filters Button -->
+                        <div class="mt-4 flex justify-end">
+                            <button 
+                                @click="clearFilters(); filteredTasks()"
+                                class="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center"
+                            >
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                Clear All Filters
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tasks Table -->
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <table class="w-full text-left border-collapse">
+                        <table class="min-w-full" x-ref="tasksTable">
                             <thead>
                                 <tr class="bg-gray-50 border-b border-gray-100">
-                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Task Title</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Course</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Deadline</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Priority</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Status</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Actions</th>
+                                    <th class="px-6 py-4 text-xs text-left font-bold text-gray-500 uppercase">Task Title</th>
+                                    <th class="px-6 py-4 text-xs text-left font-bold text-gray-500 uppercase">Course</th>
+                                    <th class="px-6 py-4 text-xs text-left font-bold text-gray-500 uppercase">Deadline</th>
+                                    <th class="px-6 py-4 text-xs text-left font-bold text-gray-500 uppercase">Priority</th>
+                                    <th class="px-6 py-4 text-xs text-left font-bold text-gray-500 uppercase">Status</th>
+                                    <th class="px-6 py-4 text-xs text-left font-bold text-gray-500 uppercase">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50">
                                 @forelse($tasks as $task)
-                                <tr class="hover:bg-gray-50 transition-colors">
+                                <tr 
+                                    data-task
+                                    data-title="{{ $task->title }}"
+                                    data-course="{{ $task->course ?? 'N/A' }}"
+                                    data-priority="{{ $task->priority }}"
+                                    data-status="{{ $task->status }}"
+                                    class="hover:bg-gray-50 transition-colors"
+                                >
                                     <td class="px-6 py-4 text-sm font-semibold text-gray-800">{{ $task->title }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-500">{{ $task->course ?? 'N/A' }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">
-                                        {{ \Carbon\Carbon::parse($task->deadline)->format('d M, Y') }}
+                                    <td class="px-6 py-4 text-sm text-gray-500">                                        
+                                        {{ \Carbon\Carbon::parse($task->deadline)->format('d/m/Y') }}
                                     </td>
                                     <td class="px-6 py-4">
                                         <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider
@@ -144,22 +290,32 @@
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 flex items-center space-x-3">
-                                        <a href="{{ route('tasks.edit', $task->id) }}" class="text-blue-500 hover:text-blue-700">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                        </a>
-                                        <a href="{{ route('tasks.delete.confirm', $task->id) }}" class="text-red-500 hover:text-red-700">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                        </a>
+                                        <a href="{{ route('tasks.edit', $task->id) }}" class="text-gray-600 hover:text-blue-600 transition-colors">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                    </a>
+                                    <a href="{{ route('tasks.delete.confirm', $task->id) }}" class="text-gray-600 hover:text-red-600 transition-colors">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </a>
                                     </td>
                                 </tr>
                                 @empty
-                                <tr>
+                                <tr x-ref="emptyRow">
                                     <td colspan="6" class="px-6 py-12 text-center text-gray-400">
                                         <p class="text-lg font-medium">No assignments found</p>
                                         <p class="text-sm">Start by adding a new one above!</p>
                                     </td>
                                 </tr>
                                 @endforelse
+                                <tr x-ref="emptyRow" style="display: none;">
+                                    <td colspan="6" class="px-6 py-12 text-center text-gray-400">
+                                        <p class="text-lg font-medium">No assignments match your filters</p>
+                                        <p class="text-sm">Try adjusting your search or filters</p>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -195,8 +351,7 @@
                             <div class="calendar-grid">
                                 @php
                                     $daysInMonth = $currentMonth->daysInMonth;
-                                    $dayOfWeek = $currentMonth->copy()->startOfMonth()->dayOfWeek; // 0 (Sun) - 6 (Sat)
-                                    // Adjust to Mon (0) - Sun (6)
+                                    $dayOfWeek = $currentMonth->copy()->startOfMonth()->dayOfWeek;
                                     $dayOfWeek = ($dayOfWeek == 0) ? 6 : $dayOfWeek - 1;
                                 @endphp
 
@@ -209,7 +364,6 @@
                                 @for ($day = 1; $day <= $daysInMonth; $day++)
                                     @php
                                         $loopDate = $currentMonth->copy()->day($day)->format('Y-m-d');
-                                        // Find tasks for this day
                                         $dayTasks = $tasks->filter(function($task) use ($loopDate) {
                                             return \Carbon\Carbon::parse($task->deadline)->format('Y-m-d') == $loopDate && $task->status !== 'Completed';
                                         });

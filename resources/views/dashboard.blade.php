@@ -15,32 +15,6 @@
     <style>
         [x-cloak] { display: none !important; }
     </style>
-
-    @if(session('deleted') || session('created') || session('updated'))
-    <div x-data="{ show: true }" 
-         x-show="show" 
-         x-init="setTimeout(() => show = false, 1500)" 
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0 scale-90"
-         x-transition:enter-end="opacity-100 scale-100"
-         x-transition:leave="transition ease-in duration-300"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
-    
-        <div class="bg-[#4F75D1] text-white p-16 rounded-lg shadow-2xl text-center w-[450px]"
-             @click.away="show = false">
-            <h2 class="text-2xl font-bold mb-4 uppercase tracking-tight">
-                {{ session('deleted') ? 'Delete Task' : (session('created') ? 'Create Task' : 'Update Task') }}
-            </h2>
-        
-            <p class="text-3xl font-medium">
-                {{ session('deleted') ? 'Task has been deleted' : (session('created') ? 'Task has been created' : 'Task has been updated') }}
-            </p>
-        </div>
-    </div>
-    @endif
-
 <div class="flex h-screen overflow-hidden">
 
     <aside class="w-64 bg-[#0B1120] text-white flex flex-col justify-between hidden md:flex">
@@ -62,10 +36,6 @@
                     <a href="{{ route('tasks.index') }}" class="flex items-center px-4 py-2 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
                         My Assignments
-                    </a>
-                    <a href="{{ route('tasks.index', ['view' => 'calendar']) }}" class="flex items-center px-4 py-2 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        Calendar
                     </a>
                 </nav>
 
@@ -101,12 +71,7 @@
         <header class="bg-white shadow-sm h-20 flex items-center justify-between px-8 z-10">
             <div>
                 <h1 class="text-2xl font-semibold text-gray-800">Dashboard</h1>
-                <p class="text-sm text-gray-500 mt-1">Welcome back! Here what's due soon.</p>
-            </div>
-            <div class="flex items-center space-x-4">
-                <button class="text-gray-400 hover:text-gray-600 focus:outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                </button>
+                <p class="text-sm text-gray-500 mt-1">Welcome back! Here's what's due soon.</p>
             </div>
         </header>
 
@@ -126,7 +91,7 @@
                 <div class="bg-white rounded-xl p-6 shadow-sm flex items-start justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-500">High Priority</p>
-                        <h2 class="text-4xl font-bold mt-4 {{ $priority_count > 0 ? 'text-gray-800' : 'text-gray-800' }}">
+                        <h2 class="text-4xl font-bold text-gray-800 mt-4">
                             {{ $priority_count ?? 0 }}
                         </h2>
                     </div>
@@ -146,79 +111,106 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col h-[500px]">
-                <div class="p-6 flex justify-between items-center border-b border-gray-100">
-                    <h3 class="text-lg font-bold text-gray-800">Current Tasks</h3>
-                    <a href="{{ route('tasks.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md shadow-sm transition">
-                        Create New Task
-                    </a>
-                </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h3 class="text-xl font-bold text-gray-800">Upcoming Deadlines</h3>
+        <span class="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">Next 7 Days</span>
+    </div>
 
-                <div class="grid grid-cols-5 bg-[#dfe6f1] text-xs font-bold text-gray-500 uppercase tracking-wider py-3 px-6">
-                    <div class="text-left">Task Name</div>
-                    <div class="text-left">Deadline</div>
-                    <div class="text-left">Priority</div>
-                    <div class="text-left">Status</div>
-                    <div class="text-right">Option</div>
-                </div>
-
-                @if(isset($tasks) && count($tasks) > 0)
-                    <div class="flex-1 overflow-y-auto">
-                        @foreach($tasks as $task)
-                            <div class="grid grid-cols-5 border-b border-gray-100 py-4 px-6 items-center hover:bg-gray-50 transition">
-                                <div class="text-sm font-semibold text-gray-800 break-words min-w-0 pr-4">
-                                    {{ $task->title }}
-                                    <p class="text-xs text-gray-400 font-normal mt-1">{{ $task->description }}</p>
-                                </div>
-                                <div class="text-xs text-gray-600 uppercase">{{ $task->deadline }}</div>
-                                <div>
-                                   <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase
-                                       {{ strtolower($task->priority) == 'high' 
-                                           ? 'bg-red-100 text-red-600' 
-                                           : (strtolower($task->priority) == 'medium' 
-                                               ? 'bg-blue-100 text-blue-600' 
-                                               : 'bg-gray-100 text-gray-600') 
-                                       }}">
-                                       {{ $task->priority }}
-                                    </span>
-                                </div>
-                                <div>
-                                    <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase 
-                                        {{ $task->status == 'Completed' ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600' }}">
-                                        {{ $task->status }}
-                                    </span>
-                                </div>
-                                <div class="flex justify-end space-x-3">
-                                    <a href="{{ route('tasks.edit', $task->id) }}" class="text-gray-600 hover:text-blue-600 transition-colors">
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                        </svg>
-                                    </a>
-                                    <a href="{{ route('tasks.delete.confirm', $task->id) }}" class="text-gray-600 hover:text-red-600 transition-colors">
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                        </svg>
-                                    </a>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="flex-1 flex flex-col items-center justify-center text-gray-400">
-                        <span class="text-xl font-medium tracking-wide">NO TASK CREATE</span>
-                    </div>
-                @endif
+    @if(isset($upcomingTasks) && count($upcomingTasks) > 0)
+        <div class="space-y-3">
+            @foreach($upcomingTasks as $task)
+                @php
+                    $deadline = \Carbon\Carbon::parse($task->deadline);
+                    $now = \Carbon\Carbon::now();
+                    $daysUntil = $now->diffInDays($deadline, false);
+                    $isToday = $deadline->isToday();
+                    $isTomorrow = $deadline->isTomorrow();
+                    
+                    // Determine urgency color
+                    if ($daysUntil < 0) {
+                        $bgColor = 'bg-red-50';
+                        $borderColor = 'border-l-red-500';
+                        $iconBg = 'bg-red-100';
+                        $iconColor = 'text-red-600';
+                    } elseif ($daysUntil <= 1) {
+                        $bgColor = 'bg-orange-50';
+                        $borderColor = 'border-l-orange-500';
+                        $iconBg = 'bg-orange-100';
+                        $iconColor = 'text-orange-600';
+                    } elseif ($daysUntil <= 3) {
+                        $bgColor = 'bg-yellow-50';
+                        $borderColor = 'border-l-yellow-500';
+                        $iconBg = 'bg-yellow-100';
+                        $iconColor = 'text-yellow-600';
+                    } else {
+                        $bgColor = 'bg-blue-50';
+                        $borderColor = 'border-l-blue-500';
+                        $iconBg = 'bg-blue-100';
+                        $iconColor = 'text-blue-600';
+                    }
+                @endphp
                 
-
-                <div class="p-4 border-t border-gray-100 bg-gray-50 rounded-b-xl flex items-center justify-between">
-                    <span class="text-xs text-gray-500">Showing 0 Tasks</span>
-                    <div class="flex space-x-2">
-                        <button class="px-3 py-1 text-xs border border-gray-300 rounded text-gray-500 hover:bg-gray-100 disabled:opacity-50" disabled>PREV</button>
-                        <button class="px-3 py-1 text-xs border border-gray-300 rounded text-gray-500 hover:bg-gray-100 disabled:opacity-50" disabled>NEXT</button>
+                <div class="flex items-start p-4 {{ $bgColor }} rounded-lg border-l-4 {{ $borderColor }} hover:shadow-md transition-shadow">
+                    <!-- Icon -->
+                    <div class="flex-shrink-0 w-12 h-12 {{ $iconBg }} rounded-lg flex items-center justify-center mr-4">
+                        <svg class="w-6 h-6 {{ $iconColor }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    
+                    <!-- Task Details -->
+                    <div class="flex-1 min-w-0">
+                        <h4 class="text-sm font-bold text-gray-800 mb-1">{{ $task->title }}</h4>
+                        @if($task->description)
+                            <p class="text-xs text-gray-600 mb-2 line-clamp-1">{{ $task->description }}</p>
+                        @endif
+                        
+                        <div class="flex items-center space-x-3 text-xs">
+                            <!-- Date Display -->
+                            <span class="text-gray-700 font-medium">
+                                @if($isToday)
+                                    Today
+                                @elseif($isTomorrow)
+                                    Tomorrow
+                                @else
+                                    {{ $deadline->format('D, d M Y') }}
+                                @endif
+                            </span>
+                            
+                            <!-- Priority Badge -->
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase
+                                {{ strtolower($task->priority) == 'high' 
+                                    ? 'bg-red-100 text-red-600' 
+                                    : (strtolower($task->priority) == 'medium' 
+                                        ? 'bg-blue-100 text-blue-600' 
+                                        : 'bg-gray-100 text-gray-600') 
+                                }}">
+                                {{ $task->priority }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Button -->
+                    <div class="flex-shrink-0 ml-4">
+                        <a href="{{ route('tasks.edit', $task->id) }}" 
+                           class="text-blue-600 hover:text-blue-800 text-xs font-semibold px-3 py-2 rounded-lg hover:bg-blue-100 transition-colors inline-block">
+                            View Details
+                        </a>
                     </div>
                 </div>
-            </div>
-
+            @endforeach
+        </div>
+    @else
+        <div class="flex flex-col items-center justify-center py-12 text-gray-400">
+            <svg class="w-16 h-16 mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="text-sm font-medium">No upcoming deadlines in the next 7 days</span>
+            <span class="text-xs mt-1">You're all caught up!</span>
+        </div>
+    @endif
+</div>
         </div>
     </main>
 </div>

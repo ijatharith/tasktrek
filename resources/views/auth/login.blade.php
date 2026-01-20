@@ -6,7 +6,7 @@
         <div>
             <div class="h-32 flex items-center justify-center px-6 border-b border-gray-800">
                 <div class="bg-blue-500 p-1 rounded-md mr-3">
-                    <svg class="w-10sni h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                 </div>
                 <span class="text-5xl font-bold items-center tracking-wide">TaskTrek</span>
             </div>
